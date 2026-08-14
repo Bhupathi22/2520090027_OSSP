@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+
+int main()
+{
+    pid_t child1, child2, child3;
+    pid_t finished;
+    int status;
+
+    /* Create Child 1 */
+    child1 = fork();
+
+    if (child1 == 0)
+    {
+        printf("Child 1: PID = %d\n", getpid());
+        sleep(3);
+        printf("Child 1 completed.\n");
+        exit(10);
+    }
+
+    /* Create Child 2 */
+    child2 = fork();
+
+    if (child2 == 0)
+    {
+        printf("Child 2: PID = %d\n", getpid());
+        sleep(1);
+        printf("Child 2 completed.\n");
+        exit(20);
+    }
+
+    /* Create Child 3 */
+    child3 = fork();
+
+    if (child3 == 0)
+    {
+        printf("Child 3: PID = %d\n", getpid());
+        sleep(2);
+        printf("Child 3 completed.\n");
+        exit(30);
+    }
+
+    /* Parent process */
+    printf("Parent: PID = %d\n", getpid());
+
+    printf("\nUsing wait():\n");
+
+    finished = wait(&status);
+
+    printf("wait() collected child PID: %d\n", finished);
+
+    if (WIFEXITED(status))
+    {
+        printf("Exit status: %d\n", WEXITSTATUS(status));
+    }
+
+    printf("\nUsing waitpid() for Child 1:\n");
+
+    waitpid(child1, &status, 0);
+
+    printf("waitpid() collected Child 1 PID: %d\n", child1);
+
+    if (WIFEXITED(status))
+    {
+        printf("Exit status: %d\n", WEXITSTATUS(status));
+    }
+
+    printf("\nUsing waitpid() for Child 3:\n");
+
+    waitpid(child3, &status, 0);
+
+    printf("waitpid() collected Child 3 PID: %d\n", child3);
+
+    if (WIFEXITED(status))
+    {
+        printf("Exit status: %d\n", WEXITSTATUS(status));
+    }
+
+    return 0;
+}
+# then second zombie
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdlib.h>
+
+int main()
+{
+    pid_t pid = fork();
+
+    if (pid < 0)
+    {
+        perror("fork failed");
+        return 1;
+    }
+
+    if (pid == 0)
+    {
+        printf("Child: PID = %d\n", getpid());
+        printf("Child terminating...\n");
+        exit(0);
+    }
+    else
+    {
+        printf("Parent: PID = %d\n", getpid());
+        printf("Child PID = %d\n", pid);
+        printf("Parent sleeping...\n");
+
+        sleep(30);
+
+        printf("Parent terminating...\n");
+    }
+
+    return 0;
+}
